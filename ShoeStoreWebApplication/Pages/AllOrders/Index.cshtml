@@ -1,0 +1,54 @@
+﻿@page
+@model ShoeStoreWebApplication.Pages.AllOrders.IndexModel
+
+@{
+    ViewData["Title"] = "Все заказы";
+}
+
+<h1>Все заказы</h1>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Номер заказа</th>
+            <th>Пользователь</th>
+            <th>Артикул продукта</th>
+            <th>Количество единиц</th>
+            <th>Дата заказа</th>
+            <th>Итоговая стоимость</th>
+            <th>Статус</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var order in Model.Orders)
+        {
+            @if (order.OrderDetails != null && order.OrderDetails.Any())
+            {
+                foreach (var detail in order.OrderDetails)
+                {
+                    <tr>
+                        <td>@order.OrderId</td>
+                        <td>@order.User?.FullName?.LastName @order.User?.FullName?.FirstName @order.User?.FullName?.Patronymic</td>
+                        <td>@detail.Product?.ProductId</td> <!-- Артикул продукта -->
+                        <td>@detail.Quantity</td> <!-- Количество единиц -->
+                        <td>@order.OrderDate.ToString("dd-MM-yyyy")</td>
+                        <td>
+                            @String.Format("{0:F2}", order.OrderDetails.Sum(d => d.Product?.Price * d.Quantity)) ₽
+                        </td>
+                        <td>@order.OrderStatus?.OrderStatusName</td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td>@order.OrderId</td>
+                    <td>@order.User?.FullName?.LastName @order.User?.FullName?.FirstName @order.User?.FullName?.Patronymic</td>
+                    <td colspan="3">Нет деталей заказа</td>
+                    <td>0 ₽</td>
+                    <td>@order.OrderStatus?.OrderStatusName</td>
+                </tr>
+            }
+        }
+    </tbody>
+</table>

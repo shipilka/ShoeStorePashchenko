@@ -1,0 +1,104 @@
+﻿@page
+@model ShoeStoreWebApplication.Pages.Products.IndexModel
+
+@{
+    ViewData["Title"] = "Список товаров";
+    var userIsAuthenticated = HttpContext.Session.GetInt32("UserId").HasValue; // Используем HttpContext
+}
+
+<h1>Список товаров</h1>
+
+<div class="filter-container">
+    <form method="get">
+        <div>
+            <label>Поиск по описанию:</label>
+            <input type="text" name="SearchTerm" />
+        </div>
+        <div>
+            <label>Производитель:</label>
+            <select name="SelectedManufacturer">
+                <option value="">Все производители</option>
+                @foreach (var manufacturer in Model.Manufacturers)
+                {
+                    <option value="@manufacturer.ManufacturerName">@manufacturer.ManufacturerName</option>
+                }
+            </select>
+        </div>
+        <div>
+            <label>Максимальная цена:</label>
+            <input type="number" name="MaxPrice" step="0.01" />
+        </div>
+        <div>
+            <label><input type="checkbox" name="ShowDiscounted" value="true" /> Только со скидкой</label>
+        </div>
+        <div>
+            <label><input type="checkbox" name="InStock" value="true" /> Только на складе</label>
+        </div>
+        <div>
+            <label>Сортировать по:</label>
+            <select name="SortBy">
+                <option value="Name">Название</option>
+                <option value="Manufacturer">Производитель</option>
+                <option value="Price">Цена</option>
+                <option value="PriceDesc">Цена по убыванию</option>
+            </select>
+        </div>
+        <button type="submit">Применить фильтры</button>
+    </form>
+</div>
+
+<div class="container">
+    @foreach (var item in Model.Product)
+    {
+        <div class="card mb-4" style="width: 100%; background-color: @(item.ActiveDiscount > 15 ? "#2E8B57" : "#FFFFFF");">
+            <div class="card-body d-flex justify-content-between">
+                <div class="card" style="flex: 1; margin-right: 10px; text-align: center;">
+                    <img src="@Url.Page("./Index", "Image", new { productId = item.ProductId })"
+                         class="img-fluid" alt="@item.ProductName.ProductName"
+                         style="max-width: 200%; max-height: 150px; object-fit: cover; display: block; margin: 70px auto 0;">
+                </div>
+                <div class="card" style="flex: 2; margin-right: 10px; padding: 10px;">
+                    <h5>@item.Category.CategoryName | @item.ProductName.ProductName</h5>
+                    <p>Описание товара: @item.ProductDescription</p>
+                    <p>Производитель: @item.Manufacturer.ManufacturerName</p>
+                    <p>Поставщик: @item.Supplier.SupplierName</p>
+                    @if (item.ActiveDiscount > 0)
+                    {
+                        <p>
+                            Цена: <span style="text-decoration: line-through;">@item.Price</span>
+                            @(item.Price * (1 - item.ActiveDiscount / 100M))
+                        </p>
+                    }
+                    else
+                    {
+                        <p>Цена: @item.Price</p>
+                    }
+                    <p>Единица измерения: @item.UnitOfMeasure.UnitName</p>
+                    <p>Количество на складе: @item.StockQuantity</p>
+                </div>
+                <div class="card" style="flex: 1; padding: 10px; text-align: center;">
+                    <h6 style="font-size: 1.5em; margin: 85px auto 0;">Скидка</h6>
+                    @if (item.ActiveDiscount > 0)
+                    {
+                        <p>@item.ActiveDiscount %</p>
+                    }
+                    else
+                    {
+                        <p>Нет скидки</p>
+                    }
+                    @if (!userIsAuthenticated) // Проверка, авторизован ли пользователь
+                    {
+                        <a asp-page="/Login" class="btn btn-primary">Войти, чтобы заказать</a>
+                    }
+                    else
+                    {
+                        <form method="post" asp-page-handler="CreateOrder">
+                            <input type="hidden" name="productId" value="@item.ProductId" />
+                            <button type="submit" class="btn btn-primary">Заказать</button>
+                        </form>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+</div>

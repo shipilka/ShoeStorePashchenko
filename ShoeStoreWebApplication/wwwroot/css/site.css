@@ -1,0 +1,26 @@
+/* Общие стили */
+html, body {
+    font-family: 'Times New Roman', serif; /* Устанавливаем шрифт */
+    background-color: #FFFFFF; /* Основной белый фон */
+}
+
+/* Основные цвета */
+.bg-light {
+    background-color: #7FFF00 !important; /* Дополнительный фон */
+}
+
+.btn-primary, .btn-success {
+    background-color: #00FA9A !important; /* Цвет акцентирования */
+    border-color: #00FA9A; /* Убираем бордеры */
+}
+
+/* Проверяем наличие скидки */
+.discount-background {
+    background-color: #2E8B57 !important; /* Цвет фона при скидке > 15% */
+}
+
+/* Заголовки */
+h1, h2, h3 {
+    margin-top: 1.5rem;
+    margin-bottom: 0.5rem;
+}

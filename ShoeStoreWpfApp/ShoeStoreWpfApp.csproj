@@ -1,0 +1,29 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net9.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Assets\Icon.ico" />
+    <None Remove="Assets\Icon.JPG" />
+    <None Remove="Assets\Icon.png" />
+    <None Remove="Assets\picture.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ShoeStoreLibrary\ShoeStoreLibrary.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Assets\Icon.ico" />
+    <Resource Include="Assets\Icon.JPG" />
+    <Resource Include="Assets\Icon.png" />
+    <Resource Include="Assets\picture.png" />
+  </ItemGroup>
+
+</Project>

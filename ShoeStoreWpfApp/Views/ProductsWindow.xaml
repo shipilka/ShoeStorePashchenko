@@ -1,0 +1,251 @@
+﻿<Window x:Class="ShoeStoreWpfApp.Views.ProductsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:sys="clr-namespace:System;assembly=mscorlib"
+        xmlns:local="clr-namespace:ShoeStoreWpfApp"
+        mc:Ignorable="d"
+        Title="Список товаров" Height="600" Width="800"
+        Icon="{StaticResource AppIcon}"
+        Background="{StaticResource MainBackground}"
+        FontFamily="{StaticResource AppFontFamily}">
+
+    <Window.Resources>
+        <local:DiscountColorConverter x:Key="DiscountColorConverter"/>
+        <local:ByteArrayToImageConverter x:Key="ByteArrayToImageConverter"/>
+        <local:StrikethroughConverter x:Key="StrikethroughConverter"/>
+        <local:DiscountedPriceConverter x:Key="DiscountedPriceConverter"/>
+        <local:DiscountVisibilityConverter x:Key="DiscountVisibilityConverter"/>
+        <local:DiscountGreaterThanConverter x:Key="DiscountGreaterThanConverter"/>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <!-- Для поисковой строки -->
+            <RowDefinition Height="*"/>
+            <!-- Для ScrollViewer -->
+        </Grid.RowDefinitions>
+        <ScrollViewer HorizontalScrollBarVisibility="Auto">
+        <StackPanel Orientation="Vertical" Margin="0,10" Grid.Row="0">
+            <StackPanel Orientation="Horizontal">
+            <TextBox x:Name="SearchTermTextBox" Width="200" Margin="5" 
+                     Text="Поиск по описанию" 
+                     GotFocus="SearchTermTextBox_GotFocus" 
+                     LostFocus="SearchTermTextBox_LostFocus" 
+                     Foreground="Gray"/>
+
+            <Label Content="Производитель:"/>
+            <ComboBox x:Name="ManufacturerComboBox" Width="200" Margin="5">
+                <ComboBoxItem Content="Все производители" Tag="All" />
+            </ComboBox>
+
+            <Label Content="Максимальная цена:"/>
+            <TextBox x:Name="MaxPriceTextBox" Width="200" Margin="5" />
+
+            <CheckBox x:Name="DiscountCheckBox" Content="Только со скидкой" Margin="5"/>
+            <CheckBox x:Name="InStockCheckBox" Content="Только на складе" Margin="5"/>
+
+            <Label Content="Сортировать по:"/>
+            <ComboBox x:Name="SortByComboBox" Width="200" Margin="5">
+                <ComboBoxItem Content="Название" Tag="Name"/>
+                <ComboBoxItem Content="Поставщик" Tag="Supplier"/>
+                <ComboBoxItem Content="Цена" Tag="Price"/>
+                <ComboBoxItem Content="Цена по убыванию" Tag="PriceDesc"/>
+            </ComboBox>
+            </StackPanel>
+
+            <StackPanel HorizontalAlignment="Left">
+                <Button x:Name="SearchButton" Content="Применить фильтры" Width="150" Click="SearchButton_Click"/>
+                <Button x:Name="ResetButton" Content="Сбросить фильтры" Width="150" Click="ResetButton_Click"  Margin="5"/>
+            </StackPanel>
+                <StackPanel>
+                <Button x:Name="AddEditProductButton" Content="Добавить товар" Width="200" Click="AddEditProductButton_Click" Margin="5" Visibility="Collapsed"/>
+                </StackPanel>
+            </StackPanel>
+        </ScrollViewer>
+
+        <ScrollViewer VerticalScrollBarVisibility="Auto" Grid.Row="1">
+            <ItemsControl x:Name="ProductsItemsControl" ItemsSource="{Binding Products}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border x:Name="ProductBorder" BorderBrush="Gray" BorderThickness="1" Margin="10" Padding="10" CornerRadius="10">
+                            <Border.Style>
+                                <Style TargetType="Border">
+                                    <Setter Property="Background" Value="{StaticResource SecondaryBackground}"/>
+                                    <!-- Установка фон для наличия товара -->
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding StockQuantity}" Value="0">
+                                            <Setter Property="Background" Value="LightBlue"/>
+                                            <!-- Установка голубого фона, если товара нет на складе -->
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Border.Style>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="200"/>
+                                    <!-- Ширина изображения -->
+                                    <ColumnDefinition Width="*"/>
+                                    <!-- Ширина центра -->
+                                    <ColumnDefinition Width="150"/>
+                                    <!-- Ширина скидки -->
+                                </Grid.ColumnDefinitions>
+
+                                <!-- Левый блок: изображение товара -->
+                                <Border Margin="5" CornerRadius="10" BorderBrush="Gray" BorderThickness="1" Background="{StaticResource MainBackground}">
+                                    <Image Source="{Binding Photo, Converter={StaticResource ByteArrayToImageConverter}, FallbackValue='pack://application:,,,/Assets/picture.png'}" 
+                                            Width="100" Height="100" 
+                                            Stretch="Uniform" />
+                                </Border>
+
+                                <!-- Центральный блок: информация о товаре -->
+                                <Border Margin="5" Grid.Column="1" CornerRadius="10" BorderBrush="Gray" BorderThickness="1" Background="{StaticResource MainBackground}">
+                                    <StackPanel Margin="10">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+
+                                            <!-- Категория -->
+                                            <TextBlock Grid.Column="0" 
+                                                       Text="{Binding Category.CategoryName}" 
+                                                       FontWeight="Bold" />
+
+                                            <!-- Вертикальный разделитель с отступами -->
+                                            <Line Grid.Column="1" 
+                                                  X1="0" Y1="0" X2="0" Y2="15" 
+                                                  Stroke="Black" StrokeThickness="1" 
+                                                  VerticalAlignment="Center" 
+                                                  Margin="5,0" />
+                                            <!-- добавляет отступы только по горизонтали -->
+
+                                            <!-- Наименование -->
+                                            <TextBlock Grid.Column="2" 
+                                                       Text="{Binding ProductName.ProductName}" 
+                                                       FontWeight="Bold" />
+                                        </Grid>
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="Описание товара:" FontWeight="Bold" Margin="0,0,5,0"/>
+                                            <TextBlock Text="{Binding ProductDescription}" />
+                                        </StackPanel>
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="Производитель: " FontWeight="Bold" Margin="0,0,5,0"/>
+                                            <TextBlock Text="{Binding Manufacturer.ManufacturerName}" />
+                                        </StackPanel>
+
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="Поставщик: " FontWeight="Bold" Margin="0,0,5,0"/>
+                                            <TextBlock Text="{Binding Supplier.SupplierName}" />
+                                        </StackPanel>
+
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="Цена: " FontWeight="Bold" VerticalAlignment="Center"/>
+
+                                            <!-- Исходная цена (из БД) -->
+                                            <TextBlock Text="{Binding Price}" 
+                                                       FontSize="14" 
+                                                       VerticalAlignment="Center"
+                                                       Foreground="{Binding ActiveDiscount, Converter={StaticResource DiscountColorConverter}}"
+                                                       TextDecorations="{Binding ActiveDiscount, Converter={StaticResource StrikethroughConverter}}"/>
+
+                                            <!-- Новая цена (вычисляется только если ActiveDiscount > 0) -->
+                                            <TextBlock FontSize="16" FontWeight="Bold" Foreground="Black" Margin="8,0,0,0"
+                                                       VerticalAlignment="Center"
+                                                       Visibility="{Binding ActiveDiscount, Converter={StaticResource DiscountVisibilityConverter}}">
+                                                <TextBlock.Text>
+                                                    <MultiBinding Converter="{StaticResource DiscountedPriceConverter}">
+                                                        <!-- Первый параметр: values[0] -->
+                                                        <Binding Path="Price" />
+                                                        <!-- Второй параметр: values[1] -->
+                                                        <Binding Path="ActiveDiscount" />
+                                                    </MultiBinding>
+                                                </TextBlock.Text>
+                                            </TextBlock>
+                                        </StackPanel>
+
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="Единица измерения: " FontWeight="Bold" Margin="0,0,5,0"/>
+                                            <TextBlock Text="{Binding UnitOfMeasure.UnitName}" />
+                                        </StackPanel>
+
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="Количество на складе: " FontWeight="Bold" Margin="0,0,5,0"/>
+                                            <TextBlock Text="{Binding StockQuantity}" />
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- Правый блок: информация о скидке -->
+                                <Border Margin="5" Grid.Column="2" CornerRadius="10" BorderBrush="Gray" BorderThickness="1">
+                                    <Border.Style>
+                                        <Style TargetType="Border">
+                                            <Setter Property="Background" Value="{StaticResource MainBackground}"/>
+                                            <!-- Значение по умолчанию -->
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding ActiveDiscount, Converter={StaticResource DiscountGreaterThanConverter}, ConverterParameter=15}" Value="True">
+                                                    <Setter Property="Background" Value="#2E8B57"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Border.Style>
+                                    <StackPanel Margin="15">
+                                        <TextBlock Text="Скидка" FontSize="16" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                        <TextBlock Text="{Binding ActiveDiscount, StringFormat='{}{0}%'}" 
+                                                   FontSize="24" Foreground="Red" 
+                                                   HorizontalAlignment="Center"/>
+                                        <!-- Кнопки для редактирования и удаления -->
+                                        <Button x:Name="EditButton" 
+                                                Content="Редактировать" 
+                                                Click="EditButton_Click" 
+                                                Tag="{Binding ProductId}">
+                                            <Button.Style>
+                                                <Style TargetType="Button">
+                                                    <!-- Значение по умолчанию — скрыто -->
+                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                    <Style.Triggers>
+                                                        <!-- Указываем путь к свойству окна -->
+                                                        <DataTrigger Binding="{Binding UserRole, RelativeSource={RelativeSource AncestorType=Window}}" Value="Администратор">
+                                                            <Setter Property="Visibility" Value="Visible"/>
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding UserRole, RelativeSource={RelativeSource AncestorType=Window}}" Value="Менеджер">
+                                                            <Setter Property="Visibility" Value="Visible"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Button.Style>
+                                        </Button>
+                                        <Button x:Name="DeleteButton" 
+                                                Content="Удалить" 
+                                                Click="DeleteButton_Click" 
+                                                Tag="{Binding ProductId}">
+                                            <Button.Style>
+                                                <Style TargetType="Button">
+                                                    <!-- По умолчанию кнопка скрыта для всех -->
+                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                    <Style.Triggers>
+                                                        <!-- Показываем, если роль Администратор -->
+                                                        <DataTrigger Binding="{Binding UserRole, RelativeSource={RelativeSource AncestorType=Window}}" Value="Администратор">
+                                                            <Setter Property="Visibility" Value="Visible"/>
+                                                        </DataTrigger>
+                                                        <!-- Показываем, если роль Менеджер -->
+                                                        <DataTrigger Binding="{Binding UserRole, RelativeSource={RelativeSource AncestorType=Window}}" Value="Менеджер">
+                                                            <Setter Property="Visibility" Value="Visible"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Button.Style>
+                                        </Button>
+                                    </StackPanel>
+                                </Border>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+    </Grid>
+</Window>

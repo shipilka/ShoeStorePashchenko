@@ -1,0 +1,48 @@
+﻿@page
+@model ShoeStoreWebApplication.Pages.Orders.IndexModel
+@{
+    ViewData["Title"] = "Мои заказы";
+}
+
+<h1>Мои заказы</h1>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Номер заказа</th>
+            <th>Артикул продукта</th>
+            <th>Количество единиц</th>
+            <th>Дата заказа</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var order in Model.Orders)
+        {
+            @if (order.OrderDetails != null && order.OrderDetails.Any())
+            {
+                foreach (var detail in order.OrderDetails)
+                {
+                    <tr>
+                        <td>@order.OrderId</td>
+                        <td>@detail.Product?.ProductId</td> <!-- Артикул продукта -->
+                        <td>@detail.Quantity</td> <!-- Количество единиц -->
+                        <td>@order.OrderDate.ToString("dd-MM-yyyy")</td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td>@order.OrderId</td>
+                    <td colspan="2">Нет деталей заказа</td>
+                    <td>@order.OrderDate.ToString("dd-MM-yyyy")</td>
+                </tr>
+            }
+        }
+    </tbody>
+</table>
+
+<h3>
+    Итоговая сумма по всем заказам:
+    @Model.Orders.Sum(order => order.OrderDetails.Sum(d => d.Product?.Price * d.Quantity)) ₽
+</h3>
